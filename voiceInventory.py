@@ -9,8 +9,6 @@ import time
 import matplotlib.pyplot as plt
 from pandas.plotting import table
 
-BASE_DIR = os.environ.get('RENDER_DISK_PATH', os.getcwd())
-
 entry = []
 stop_session_flag = False
 session_active = False
@@ -111,7 +109,7 @@ def excel_2JSON(file_name, output_file, *columns):
 
 # Export inventory to different formats
 def export_inventory(file_name, format_type):
-    json_file = os.path.join(BASE_DIR, 'inventory.json')
+    json_file = 'inventory.json'
     try:
         with open(json_file, 'r') as file:
             data = json.load(file)
@@ -149,7 +147,7 @@ def export_inventory(file_name, format_type):
 
 # Deletes entry from inventory.json
 def delete_entry(entry2delete):
-    json_file = os.path.join(BASE_DIR, 'inventory.json')
+    json_file = 'inventory.json'
     try:
         with open(json_file, 'r') as file:
             data = json.load(file)
@@ -171,7 +169,7 @@ def speak(text):
 
 # Saves record to inventory.json
 def save_2json(sessionType, data, filename="inventory.json"):
-    filepath = os.path.join(BASE_DIR, filename)
+    filepath = os.path.abspath(filename)
     json_data = [
         {
             "Date": item[0],
@@ -219,16 +217,18 @@ def beep_item_added():
     print("Item added beep (second)")
 
 # Extracts item and quantity from text
+# Extracts item and quantity from text
 def get_item_quantity(text):
     text = unidecode(text.lower())
-    print(f"Processing quantity text: {text}")
+    print(f"Processing quantity text: {text}")  # Debug log
+    # Match digits with optional "quantity/qnty/qty" prefix and optional unit
     pattern = r'(?:quantity\s*|qnty\s*|qty\s*)?(\d+)(?:\s+([a-zA-Z\s]+))?'
     matches = re.findall(pattern, text)
     result = []
     for match in matches:
         quantity = int(match[0])
         unit = match[1].strip() if match[1] else 'undefined'
-        print(f"Matched quantity: {quantity}, unit: {unit}")
+        print(f"Matched quantity: {quantity}, unit: {unit}")  # Debug log
         result.append((unit, quantity))
     return result if result else None
 
@@ -286,11 +286,11 @@ def load_json(file_name):
 def start_inventory(sessionType):
     try:
         print(f"Starting {sessionType} session")
-        df_vendors = load_json(os.path.join(BASE_DIR, "vendors.json"))
+        df_vendors = load_json("vendors.json")
         print(f"✅ Loaded {len(df_vendors)} vendors")
-        df_items = load_json(os.path.join(BASE_DIR, "materials.json"))
+        df_items = load_json("materials.json")
         print(f"✅ Loaded {len(df_items)} materials")
-        df_units = load_json(os.path.join(BASE_DIR, "units.json"))
+        df_units = load_json("units.json")
         print(f"✅ Loaded {len(df_units)} units")
         return f"Started {sessionType} entry"
     except Exception as e:
