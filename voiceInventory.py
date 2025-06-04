@@ -217,11 +217,20 @@ def beep_item_added():
     print("Item added beep (second)")
 
 # Extracts item and quantity from text
+# Extracts item and quantity from text
 def get_item_quantity(text):
     text = unidecode(text.lower())
-    pattern = r'([a-zA-Z0-9\s\.\*x+]+?)(?:quantity\s*|qnty\s*|qty\s*)(\d+)(?=\s*[a-zA-Z0-9\s\.\*x+]*?(?:quantity\s*|qnty\s*|qty\s*)|$|\s*$)'
+    print(f"Processing quantity text: {text}")  # Debug log
+    # Match digits with optional "quantity/qnty/qty" prefix and optional unit
+    pattern = r'(?:quantity\s*|qnty\s*|qty\s*)?(\d+)(?:\s+([a-zA-Z\s]+))?'
     matches = re.findall(pattern, text)
-    return [(match[0].strip(), int(match[1])) for match in matches] if matches else None
+    result = []
+    for match in matches:
+        quantity = int(match[0])
+        unit = match[1].strip() if match[1] else 'undefined'
+        print(f"Matched quantity: {quantity}, unit: {unit}")  # Debug log
+        result.append((unit, quantity))
+    return result if result else None
 
 # Matches text with vendors, materials, or units
 def match_text(match_type, input_text, df_type, threshold=60):

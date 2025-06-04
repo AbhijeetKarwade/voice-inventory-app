@@ -250,14 +250,15 @@ def process_quantity():
         vendor = data.get('vendor')
         material = data.get('material')
         session_type = data.get('session')
+        print(f"Received quantity data: text='{text}', vendor='{vendor}', material='{material}', session='{session_type}'")  # Debug log
         if not all([text, vendor, material, session_type]):
             return jsonify({'error': 'Missing required fields!'}), 400
         df_units = voiceInventory.load_json('units.json')
         quantity_match = voiceInventory.get_item_quantity(text)
         if quantity_match:
-            quantity = quantity_match[0][1]
-            unit_text = text.split()[1] if len(text.split()) > 1 else 'undefined'
-            unit = voiceInventory.match_text('units', unit_text, df_units) or 'undefined'
+            unit_text, quantity = quantity_match[0]
+            unit = voiceInventory.match_text('units', unit_text, df_units) or unit_text or 'undefined'
+            print(f"Saving entry: quantity={quantity}, unit={unit}")  # Debug log
             entry = [[
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 vendor,
@@ -268,8 +269,10 @@ def process_quantity():
             ]]
             voiceInventory.save_2json(session_type, entry)
             return jsonify({'success': True}), 200
-        return jsonify({'success': False, 'error': 'Quantity not recognized'}), 400
+        print(f"Quantity not recognized in text: {text}")  # Debug log
+        return jsonify({'success': False, 'error': 'Quantity not recognized. Please say a number like "10" or "5 bags".'}), 400
     except Exception as e:
+        print(f"Error in process_quantity: {e}")  # Debug log
         return jsonify({'error': str(e)}), 500
 
 # Endpoint to download files

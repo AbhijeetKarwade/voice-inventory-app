@@ -235,25 +235,27 @@
                     speak('Material not recognized. Try again.');
                 }
             } else if (step === 'quantity') {
-                const response = await fetch('/process_quantity', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, vendor, material, session: sessionType })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    playBeep('added');
-                    speak('Item added successfully.');
-                    showNotification('Item added successfully.');
-                    step = 'material';
-                    playBeep('item');
-                    speak('Say next material.');
-                    loadInventory();
-                } else {
-                    playBeep('invalid');
-                    speak('Quantity not recognized. Try again.');
-                }
-            }
+                  const response = await fetch('/process_quantity', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ text, vendor, material, session: sessionType })
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                      playBeep('added');
+                      speak('Item added successfully.');
+                      showNotification('Item added successfully.');
+                      step = 'material';
+                      playBeep('item');
+                      speak('Say next material.');
+                      loadInventory();
+                  } else {
+                      playBeep('invalid');
+                      speak(result.error || 'Quantity not recognized. Try again.');
+                      console.error('Quantity error:', result.error, 'Input:', text); // Debug log
+                  }
+              }
+          
             if (step !== 'done') recognition.start();
         };
 
