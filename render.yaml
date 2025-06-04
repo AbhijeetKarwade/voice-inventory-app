@@ -2,11 +2,12 @@ services:
   - type: web
     name: voice-inventory-app
     runtime: python
-    runtimeVersion: 3.11  # Specify Python version (e.g., 3.11 for compatibility)
+    runtimeVersion: 3.11
+    preDeployCommand: apt-get update && apt-get install -y espeak-ng beep
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:app
     envVars:
       - key: FLASK_ENV
         value: production
       - key: PYTHONUNBUFFERED
-        value: "1"  # Ensures real-time logging
+        value: "1"
