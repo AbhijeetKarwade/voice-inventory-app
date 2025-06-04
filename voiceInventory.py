@@ -480,12 +480,28 @@ def excel_2JSON(file_name, output_file, *columns):
 
 
 # Speak chat engine
+# def speak(text):
+#     engine = pyttsx3.init()
+#     engine.setProperty("rate", 150)
+#     print(text)
+#     engine.say(text)
+#     engine.runAndWait()
+
+import os
+
 def speak(text):
-    engine = pyttsx3.init()
-    engine.setProperty("rate", 150)
-    print(text)
-    engine.say(text)
-    engine.runAndWait()
+    print(f"[Speak] {text}")
+    # Disable TTS on Render deployment
+    if os.environ.get("RENDER") == "true":
+        return
+    try:
+
+        engine = pyttsx3.init()
+        engine.setProperty("rate", 150)
+        engine.say(text)
+        engine.runAndWait()
+    except Exception as e:
+        print(f"Speech error: {e}")
 
 
 # Saves the record to JSON (inventory.json)
