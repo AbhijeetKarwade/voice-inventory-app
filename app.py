@@ -6,18 +6,23 @@ import voiceInventory
 from voiceInventory import excel_2JSON, start_session, stop_session, active_session, clear_entry, delete_entry, save_2json, export_inventory, empty_jsonFile
 
 app = Flask(__name__)
+BASE_DIR = os.environ.get('RENDER_DISK_PATH', os.getcwd())
 
 @app.route('/')
 def home():
-    return send_from_directory(os.getcwd(), 'index.html')
+    return send_from_directory(BASE_DIR, 'index.html')
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(os.path.join(BASE_DIR, 'static'), filename)
 
 # Load vendors, materials, and units from JSON files
 def load_data():
-    with open('vendors.json') as vendors_file:
+    with open(os.path.join(BASE_DIR, 'vendors.json')) as vendors_file:
         vendors = json.load(vendors_file)
-    with open('materials.json') as materials_file:
+    with open(os.path.join(BASE_DIR, 'materials.json')) as materials_file:
         materials = json.load(materials_file)
-    with open('units.json') as units_file:
+    with open(os.path.join(BASE_DIR, 'units.json')) as units_file:
         units = json.load(units_file)
     return vendors, materials, units
 
@@ -30,14 +35,14 @@ def get_data():
 # Endpoint to get vendors
 @app.route('/get_vendors', methods=['GET'])
 def get_vendors():
-    with open('vendors.json') as vendors_file:
+    with open(os.path.join(BASE_DIR, 'vendors.json')) as vendors_file:
         vendors = json.load(vendors_file)
     return jsonify({'vendors': vendors})
 
 # Endpoint to get materials
 @app.route('/get_materials', methods=['GET'])
 def get_materials():
-    with open('materials.json') as materials_file:
+    with open(os.path.join(BASE_DIR, 'materials.json')) as materials_file:
         materials = json.load(materials_file)
     return jsonify({'materials': materials})
 
@@ -48,7 +53,7 @@ def add_vendor():
     if new_vendor:
         vendors, materials, units = load_data()
         vendors.append({'vendor': new_vendor})
-        with open('vendors.json', 'w') as vendors_file:
+        with open(os.path.join(BASE_DIR, 'vendors.json'), 'w') as vendors_file:
             json.dump(vendors, vendors_file)
         return jsonify({'message': 'Vendor added successfully!'}), 201
     return jsonify({'error': 'Vendor name is required!'}), 400
@@ -63,9 +68,9 @@ def add_material():
         materials.append({'material': new_material})
         if new_unit:
             units.append({'unit': new_unit})
-        with open('materials.json', 'w') as materials_file:
+        with open(os.path.join(BASE_DIR, 'materials.json'), 'w') as materials_file:
             json.dump(materials, materials_file)
-        with open('units.json', 'w') as units_file:
+        with open(os.path.join(BASE_DIR, 'units.json'), 'w') as units_file:
             json.dump(units, units_file)
         return jsonify({'message': 'Material with unit added successfully!'}), 201
     return jsonify({'error': 'Material name is required!'}), 400
@@ -78,7 +83,7 @@ def delete_vendor():
         vendors, _, _ = load_data()
         updated_vendors = [v for v in vendors if v['vendor'] != vendor_to_delete]
         if len(updated_vendors) < len(vendors):
-            with open('vendors.json', 'w') as vendors_file:
+            with open(os.path.join(BASE_DIR, 'vendors.json'), 'w') as vendors_file:
                 json.dump(updated_vendors, vendors_file)
             return jsonify({'success': True, 'message': 'Vendor deleted successfully!'}), 200
         return jsonify({'success': False, 'message': 'Vendor not found!'}), 404
@@ -92,7 +97,7 @@ def delete_material():
         _, materials, _ = load_data()
         updated_materials = [m for m in materials if m['material'] != material_to_delete]
         if len(updated_materials) < len(materials):
-            with open('materials.json', 'w') as materials_file:
+            with open(os.path.join(BASE_DIR, 'materials.json'), 'w') as materials_file:
                 json.dump(updated_materials, materials_file)
             return jsonify({'success': True, 'message': 'Material deleted successfully!'}), 200
         return jsonify({'success': False, 'message': 'Material not found!'}), 404
@@ -109,9 +114,9 @@ def import_excel():
     if not file or not output_file or not columns:
         return jsonify({'error': 'Missing file, output_file, or columns!'}), 400
     try:
-        temp_path = os.path.join(os.getcwd(), file.filename)
+        temp_path = os.path.join(BASE_DIR, file.filename)
         file.save(temp_path)
-        voiceInventory.excel_2JSON(temp_path, output_file, *columns)
+        voiceInventory.excel_2JSON(temp_path, os.path.join(BASE_DIR, output_file), *columns)
         os.remove(temp_path)
         return jsonify({'message': f'Successfully converted {file.filename} to {output_file}'}), 200
     except Exception as e:
@@ -144,7 +149,7 @@ def export_entries():
     file_name = request.json.get('filename')
     format_type = request.json.get('format')
     try:
-        export_inventory(file_name, format_type)
+        export_inventory(os.path.join(BASE_DIR, file_name), format_type)
         return jsonify({'success': True, 'message': 'File successfully created.'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -154,7 +159,7 @@ def export_entries():
 def clear_entries():
     filename = request.json.get('filename')
     try:
-        empty_jsonFile(filename)
+        empty_jsonFile(os.path.join(BASE_DIR, filename))
         return jsonify({'message': 'JSON cleared'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -172,7 +177,7 @@ def remove_entry():
 # Endpoint to check session status
 @app.route('/session_status', methods=['GET'])
 def session_status():
-    result = json.loads(active_session())  # Parse JSON string to Python object
+    result = json.loads(active_session())
     print('Result:', result)
     return jsonify(result)
 
@@ -218,7 +223,7 @@ def match_vendor_endpoint():
         vendor_name = request.json.get('vendor')
         if not vendor_name:
             return jsonify({'error': 'Vendor name is required!'}), 400
-        df_vendors = voiceInventory.load_json('vendors.json')
+        df_vendors = voiceInventory.load_json(os.path.join(BASE_DIR, 'vendors.json'))
         matched_vendor = voiceInventory.match_text('vendors', vendor_name, df_vendors)
         if matched_vendor:
             return jsonify({'vendor': matched_vendor}), 200
@@ -233,7 +238,7 @@ def match_material_endpoint():
         material_name = request.json.get('material')
         if not material_name:
             return jsonify({'error': 'Material name is required!'}), 400
-        df_items = voiceInventory.load_json('materials.json')
+        df_items = voiceInventory.load_json(os.path.join(BASE_DIR, 'materials.json'))
         matched_material = voiceInventory.match_text('materials', material_name, df_items)
         if matched_material:
             return jsonify({'material': matched_material}), 200
@@ -250,15 +255,15 @@ def process_quantity():
         vendor = data.get('vendor')
         material = data.get('material')
         session_type = data.get('session')
-        print(f"Received quantity data: text='{text}', vendor='{vendor}', material='{material}', session='{session_type}'")  # Debug log
+        print(f"Received quantity data: text='{text}', vendor='{vendor}', material='{material}', session='{session_type}'")
         if not all([text, vendor, material, session_type]):
             return jsonify({'error': 'Missing required fields!'}), 400
-        df_units = voiceInventory.load_json('units.json')
+        df_units = voiceInventory.load_json(os.path.join(BASE_DIR, 'units.json'))
         quantity_match = voiceInventory.get_item_quantity(text)
         if quantity_match:
             unit_text, quantity = quantity_match[0]
             unit = voiceInventory.match_text('units', unit_text, df_units) or unit_text or 'undefined'
-            print(f"Saving entry: quantity={quantity}, unit={unit}")  # Debug log
+            print(f"Saving entry: quantity={quantity}, unit={unit}")
             entry = [[
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 vendor,
@@ -269,17 +274,17 @@ def process_quantity():
             ]]
             voiceInventory.save_2json(session_type, entry)
             return jsonify({'success': True}), 200
-        print(f"Quantity not recognized in text: {text}")  # Debug log
+        print(f"Quantity not recognized in text: {text}")
         return jsonify({'success': False, 'error': 'Quantity not recognized. Please say a number like "10" or "5 bags".'}), 400
     except Exception as e:
-        print(f"Error in process_quantity: {e}")  # Debug log
+        print(f"Error in process_quantity: {e}")
         return jsonify({'error': str(e)}), 500
 
 # Endpoint to download files
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
     try:
-        return send_from_directory(os.getcwd(), filename, as_attachment=True)
+        return send_from_directory(BASE_DIR, filename, as_attachment=True)
     except FileNotFoundError:
         return jsonify({'error': 'File not found'}), 404
 
