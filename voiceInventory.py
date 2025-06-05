@@ -12,12 +12,11 @@ import speech_recognition as sr
 import os
 import time #28-04 
 import platform  #29-04 for beep
-import logging
-app.logger.setLevel(logging.INFO)
 
 entry = []
 stop_session_flag = False
 session_active = False
+
 
 # Shares the status of active session
 def active_session():
@@ -615,27 +614,15 @@ def audio_2text():
             print(f"Error: {str(e)}")
             return None
 
-def process_session(sessionType, input_text, df_vendors, df_items, df_units):
+
+# Start a new session for a new vendor & materials.
+def process_session(sessionType, df_vendors, df_items, df_units):
     global entry
     global stop_session_flag
     global session_active
 
     entry = []
     count = 0
-
-    # Process vendor
-    if not input_text or not (vendor := match_text('vendors', input_text, df_vendors)):
-        return json.dumps({'error': 'Invalid vendor'})
-    # Process material and quantity as before
-    # ...
-# Start a new session for a new vendor & materials.
-# def process_session(sessionType, df_vendors, df_items, df_units):
-#     global entry
-#     global stop_session_flag
-#     global session_active
-
-#     entry = []
-#     count = 0
 
     # Loop to get vendor name
     while True:

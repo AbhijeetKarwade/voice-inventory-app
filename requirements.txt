@@ -2,10 +2,8 @@ Flask
 pandas
 reportlab
 matplotlib
-pyttsx3
 fuzzywuzzy
 python-Levenshtein
-SpeechRecognition
 unidecode
 openpyxl
 gunicorn
