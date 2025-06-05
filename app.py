@@ -8,6 +8,8 @@ from voiceInventory import *
 
 app = Flask(__name__)
 
+import logging
+app.logger.setLevel(logging.INFO)
 
 @app.route('/')
 def home():
@@ -104,6 +106,33 @@ def delete_material():
     return jsonify({'success': False, 'message': 'Material not found!'}), 404
 
 
+# @app.route('/import_excel', methods=['POST'])
+# def import_excel():
+#     if 'file' not in request.files:
+#         return jsonify({'error': 'No file provided!'}), 400
+#     file = request.files['file']
+#     output_file = request.form.get('output_file')
+#     columns = request.form.get('columns').split(',')
+    
+#     if not file or not output_file or not columns:
+#         return jsonify({'error': 'Missing file, output_file, or columns!'}), 400
+    
+#     try:
+#         # Save the uploaded file temporarily
+#         temp_path = os.path.join(os.getcwd(), file.filename)
+#         file.save(temp_path)
+        
+#         # Call excel_2json from voiceInventory1.py
+#         voiceInventory.excel_2JSON(temp_path, output_file, *columns)
+        
+#         # Remove the temporary file
+#         os.remove(temp_path)
+        
+#         return jsonify({'message': f'Successfully converted {file.filename} to {output_file}'}), 200
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+
+
 @app.route('/import_excel', methods=['POST'])
 def import_excel():
     if 'file' not in request.files:
@@ -116,19 +145,15 @@ def import_excel():
         return jsonify({'error': 'Missing file, output_file, or columns!'}), 400
     
     try:
-        # Save the uploaded file temporarily
         temp_path = os.path.join(os.getcwd(), file.filename)
         file.save(temp_path)
-        
-        # Call excel_2json from voiceInventory1.py
         voiceInventory.excel_2JSON(temp_path, output_file, *columns)
-        
-        # Remove the temporary file
         os.remove(temp_path)
-        
         return jsonify({'message': f'Successfully converted {file.filename} to {output_file}'}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error processing Excel file: {str(e)}")
+        return jsonify({'error': f'Failed to process Excel file: {str(e)}'}), 500
+
 
 
 @app.route('/save_inventory', methods=['POST'])
@@ -208,6 +233,4 @@ def stop_listening():
 
 if __name__ == '__main__':
 
-    if __name__ == "__main__":
-        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
+    app.run(debug=True)

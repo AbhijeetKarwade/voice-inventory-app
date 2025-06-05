@@ -12,11 +12,12 @@ import speech_recognition as sr
 import os
 import time #28-04 
 import platform  #29-04 for beep
+import logging
+app.logger.setLevel(logging.INFO)
 
 entry = []
 stop_session_flag = False
 session_active = False
-
 
 # Shares the status of active session
 def active_session():
@@ -480,28 +481,12 @@ def excel_2JSON(file_name, output_file, *columns):
 
 
 # Speak chat engine
-# def speak(text):
-#     engine = pyttsx3.init()
-#     engine.setProperty("rate", 150)
-#     print(text)
-#     engine.say(text)
-#     engine.runAndWait()
-
-import os
-
 def speak(text):
-    print(f"[Speak] {text}")
-    # Disable TTS on Render deployment
-    if os.environ.get("RENDER") == "true":
-        return
-    try:
-
-        engine = pyttsx3.init()
-        engine.setProperty("rate", 150)
-        engine.say(text)
-        engine.runAndWait()
-    except Exception as e:
-        print(f"Speech error: {e}")
+    engine = pyttsx3.init()
+    engine.setProperty("rate", 150)
+    print(text)
+    engine.say(text)
+    engine.runAndWait()
 
 
 # Saves the record to JSON (inventory.json)
@@ -630,15 +615,27 @@ def audio_2text():
             print(f"Error: {str(e)}")
             return None
 
-
-# Start a new session for a new vendor & materials.
-def process_session(sessionType, df_vendors, df_items, df_units):
+def process_session(sessionType, input_text, df_vendors, df_items, df_units):
     global entry
     global stop_session_flag
     global session_active
 
     entry = []
     count = 0
+
+    # Process vendor
+    if not input_text or not (vendor := match_text('vendors', input_text, df_vendors)):
+        return json.dumps({'error': 'Invalid vendor'})
+    # Process material and quantity as before
+    # ...
+# Start a new session for a new vendor & materials.
+# def process_session(sessionType, df_vendors, df_items, df_units):
+#     global entry
+#     global stop_session_flag
+#     global session_active
+
+#     entry = []
+#     count = 0
 
     # Loop to get vendor name
     while True:
