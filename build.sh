@@ -3,7 +3,7 @@ services:
     name: voice-inventory-manager
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: ./build.sh
     startCommand: gunicorn app:app
     disk:
       name: data
