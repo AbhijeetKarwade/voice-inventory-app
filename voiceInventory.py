@@ -37,14 +37,27 @@ def clear_entry():
 
 
 # Load vendors, materials and units from JSON files
+
+import os
+DATA_DIR = os.getenv('DATA_DIR', os.getcwd())  # Default to current directory if not set
 def load_data():
-    with open('vendors.json') as vendors_file:
+    with open(os.path.join(DATA_DIR, 'vendors.json')) as vendors_file:
         vendors = json.load(vendors_file)
-    with open('materials.json') as materials_file:
+    with open(os.path.join(DATA_DIR, 'materials.json')) as materials_file:
         materials = json.load(materials_file)
-    with open('units.json') as units_file:
+    with open(os.path.join(DATA_DIR, 'units.json')) as units_file:
         units = json.load(units_file)
     return vendors, materials, units
+
+
+# def load_data():
+#     with open('vendors.json') as vendors_file:
+#         vendors = json.load(vendors_file)
+#     with open('materials.json') as materials_file:
+#         materials = json.load(materials_file)
+#     with open('units.json') as units_file:
+#         units = json.load(units_file)
+#     return vendors, materials, units
 
 
 # Load vendors, materials and units from JSON files
@@ -828,19 +841,37 @@ def stop_inventory(sessionType):
 
 
 # Endpoint to start/stop of a recording session        
-def start_session(sessionType):
-    global session_active
 
-    if(sessionType == 'inward'):        
+import os
+def start_session(sessionType):
+    if os.getenv('RENDER', 'false').lower() == 'true':
+        return json.dumps({'message': 'Voice features are disabled on Render'})
+    global session_active
+    if sessionType == 'inward':
         session_active = True
-        # Code for inward session
         start_inventory('inward')
-        return("Started inward entry")
-    elif(sessionType == 'outward'):
+        return "Started inward entry"
+    elif sessionType == 'outward':
         session_active = True
-        # Code for outward session
         start_inventory('outward')
-        return('Started outward entry')
+        return 'Started outward entry'
+
+
+
+
+# def start_session(sessionType):
+#     global session_active
+
+#     if(sessionType == 'inward'):        
+#         session_active = True
+#         # Code for inward session
+#         start_inventory('inward')
+#         return("Started inward entry")
+#     elif(sessionType == 'outward'):
+#         session_active = True
+#         # Code for outward session
+#         start_inventory('outward')
+#         return('Started outward entry')
 
 
 # Endpoint to stop the recording session

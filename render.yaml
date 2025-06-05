@@ -1,13 +1,19 @@
 services:
   - type: web
-    name: voice-inventory-app
-    runtime: python
-    runtimeVersion: 3.11
-    preDeployCommand: apt-get update && apt-get install -y espeak-ng build-essential python3-dev
+    name: voice-inventory-manager
+    env: python
+    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT app:app
+    startCommand: gunicorn app:app
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
     envVars:
-      - key: FLASK_ENV
-        value: production
-      - key: PYTHONUNBUFFERED
-        value: "1"
+      - key: PYTHON_VERSION
+        value: 3.9
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 8000
+    buildCommand: ./build.sh

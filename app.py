@@ -15,14 +15,27 @@ def home():
 
 
 # Load vendors and materials from JSON files
+
+import os
+DATA_DIR = os.getenv('DATA_DIR', os.getcwd())  # Default to current directory if not set
 def load_data():
-    with open('vendors.json') as vendors_file:
+    with open(os.path.join(DATA_DIR, 'vendors.json')) as vendors_file:
         vendors = json.load(vendors_file)
-    with open('materials.json') as materials_file:
+    with open(os.path.join(DATA_DIR, 'materials.json')) as materials_file:
         materials = json.load(materials_file)
-    with open('units.json') as units_file:
+    with open(os.path.join(DATA_DIR, 'units.json')) as units_file:
         units = json.load(units_file)
     return vendors, materials, units
+
+
+# def load_data():
+#     with open('vendors.json') as vendors_file:
+#         vendors = json.load(vendors_file)
+#     with open('materials.json') as materials_file:
+#         materials = json.load(materials_file)
+#     with open('units.json') as units_file:
+#         units = json.load(units_file)
+#     return vendors, materials, units
 
 
 # Endpoint to get vendors and materials
@@ -206,6 +219,12 @@ def stop_listening():
     return jsonify({'message': result}), 202
     
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    app.run(debug=True)
+#     app.run(debug=True)
+if __name__ == '__main__':
+    import os
+    # Use environment variables for host and port, default to 0.0.0.0 and 8000 for Render
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', 8000))
+    app.run(host=host, port=port, debug=False)
