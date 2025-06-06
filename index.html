@@ -4,245 +4,421 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Inventory Manager</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
+        body { background-color: #f8f9fa; }
+        .card { margin-bottom: 20px; }
+        .table-responsive { max-height: 400px; }
+        #vendors-list, #materials-list, #units-list { white-space: pre-wrap; font-family: monospace; }
+        .notification { display: none; position: fixed; top: 20px; right: 20px; z-index: 1000; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto p-6 max-w-7xl">
-        <!-- Header -->
-        <header class="bg-white shadow rounded-lg p-6 mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">Voice Inventory Manager</h1>
-        </header>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Voice Inventory Manager</h1>
 
-        <!-- Navigation -->
-        <nav class="bg-white shadow rounded-lg mb-6">
-            <ul class="flex space-x-4 p-4">
-                <li><a href="#voice-input" class="text-blue-600 hover:text-blue-800 font-medium">Voice Input</a></li>
-                <li><a href="#manual-input" class="text-blue-600 hover:text-blue-800 font-medium">Manual Input</a></li>
-                <li><a href="#inventory" class="text-blue-600 hover:text-blue-800 font-medium">Inventory</a></li>
-                <li><a href="#settings" class="text-blue-600 hover:text-blue-800 font-medium">Settings</a></li>
-            </ul>
-        </nav>
-
-        <!-- Inward/Outward Section -->
-        <section id="inward-outward" class="bg-white shadow rounded-lg p-6 mb-6 fade-in">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Add Inward/Outward Inventories</h2>
-            <div class="flex space-x-4">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Inward</button>
-                <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Outward</button>
-            </div>
-        </section>
-
-        <!-- Manual Inventory Entry -->
-        <section id="manual-input" class="bg-white shadow rounded-lg p-6 mb-6 fade-in">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Manual Inventory Entry</h2>
-            <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
-                    <input type="date" id="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" value="">
-                </div>
-                <div>
-                    <label for="vendor" class="block text-sm font-medium text-gray-700">Vendor</label>
-                    <input type="text" id="vendor" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Enter vendor name">
-                </div>
-                <div>
-                    <label for="item" class="block text-sm font-medium text-gray-700">Item</label>
-                    <input type="text" id="item" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Enter item name">
-                </div>
-                <div>
-                    <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                    <input type="number" id="quantity" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Enter quantity">
-                </div>
-                <div>
-                    <label for="unit" class="block text-sm font-medium text-gray-700">Unit</label>
-                    <input type="text" id="unit" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Enter unit">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Session</label>
-                    <div class="mt-2 flex space-x-4">
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="session" value="inward" class="form-radio" checked>
-                            <span class="ml-2">Inward</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="session" value="outward" class="form-radio">
-                            <span class="ml-2">Outward</span>
-                        </label>
+        <!-- Inward/Outward Inventories -->
+        <div class="card">
+            <div class="card-header">Add Inward/Outward Inventories</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-primary btn-block" onclick="startListening('inward')">Inward</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-primary btn-block" onclick="startListening('outward')">Outward</button>
                     </div>
                 </div>
-                <div class="md:col-span-2">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Add Entry</button>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <button class="btn btn-danger btn-block" onclick="recognition.stop(); speak('Session stopped'); step = 'done';">Stop</button>
+                    </div>
                 </div>
-            </form>
-        </section>
+            </div>
+        </div>
 
         <!-- Inventory Items -->
-        <section id="inventory" class="bg-white shadow rounded-lg p-6 mb-6 fade-in">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Inventory Items</h2>
-            <div class="flex justify-between mb-4">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Save</button>
-                <div class="relative inline-block text-left">
-                    <button class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">Export</button>
-                    <div class="absolute hidden group-hover:block bg-white shadow-lg rounded-lg mt-2">
-                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">CSV</a>
-                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Excel</a>
-                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">PDF</a>
+        <div class="card">
+            <div class="card-header">Inventory Items</div>
+            <div class="card-body">
+                <button class="btn btn-success mb-3" onclick="saveInventory()">Save</button>
+                <div class="dropdown d-inline-block mb-3">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="exportMenu" data-toggle="dropdown">
+                        Export
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#" onclick="exportFile('csv')">CSV</a>
+                        <a class="dropdown-item" href="#" onclick="exportFile('excel')">Excel</a>
+                        <a class="dropdown-item" href="#" onclick="exportFile('pdf')">PDF</a>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Time</th>
+                                <th>Vendor</th>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th>Session</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTable">
+                            <tr>
+                                <td colspan="7" class="text-center">No inventory items yet. Use voice commands to add items.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="card">
+            <div class="card-header">Settings</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h5>Vendors</h5>
+                    <input type="text" id="vendorInput" class="form-control d-inline-block w-50" placeholder="Enter vendor name">
+                    <button class="btn btn-primary" onclick="addVendor()">Add</button>
+                    <div id="vendors-list"></div>
+                </div>
+                <div class="mb-3">
+                    <h5>Materials</h5>
+                    <input type="text" id="materialInput" class="form-control d-inline-block w-50" placeholder="Enter material name">
+                    <input type="text" id="unitInput" class="form-control d-inline-block w-25" placeholder="Enter unit">
+                    <button class="btn btn-primary" onclick="addMaterial()">Add</button>
+                    <div id="materials-list"></div>
+                </div>
+                <div class="mb-3">
+                    <h5>Import Vendor List (Excel)</h5>
+                    <input type="file" id="vendorExcel" accept=".xlsx">
+                    <button class="btn btn-primary" onclick="importExcel('vendors.json', 'Vendor')">Import</button>
+                </div>
+                <div class="mb-3">
+                    <h5>Import Material List (Excel)</h5>
+                    <input type="file" id="materialExcel" accept=".xlsx">
+                    <button class="btn btn-primary" onclick="importExcel('materials.json', 'Item name*')">Import</button>
+                </div>
+                <div class="mb-3">
+                    <h5>Import Unit List (Excel)</h5>
+                    <input type="file" id="unitExcel" accept=".xlsx">
+                    <button class="btn btn-primary" onclick="importExcel('units.json', 'Unit')">Import</button>
+                </div>
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-danger dropdown-toggle" type="button" id="clearMenu" data-toggle="dropdown">
+                        Clear JSON
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#" onclick="clearJson('inventory.json')">Inventory</a>
+                        <a class="dropdown-item" href="#" onclick="clearJson('vendors.json')">Vendor</a>
+                        <a class="dropdown-item" href="#" onclick="clearJson('materials.json')">Material</a>
+                        <a class="dropdown-item" href="#" onclick="clearJson('units.json')">Unit</a>
                     </div>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory items yet. Use manual or voice commands to add items.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        </div>
 
-        <!-- Settings -->
-        <section id="settings" class="bg-white shadow rounded-lg p-6 mb-6 fade-in">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Settings</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Vendors -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-700 mb-2">Vendors</h3>
-                    <input type="text" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter vendor name">
-                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Add</button>
-                </div>
-                <!-- Materials -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-700 mb-2">Materials</h3>
-                    <input type="text" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter material name">
-                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Add</button>
-                </div>
-                <!-- Import Vendor List -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-700 mb-2">Import Vendor List (Excel)</h3>
-                    <input type="text" id="vendor-column" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter column name for Vendor">
-                    <input type="file" id="vendor-file" accept=".xlsx,.xls" class="block w-full text-gray-500 mb-2">
-                    <button onclick="importExcel('vendor')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Import</button>
-                    <pre id="vendor-json" class="mt-2 p-2 bg-gray-100 rounded hidden"></pre>
-                </div>
-                <!-- Import Material List -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-700 mb-2">Import Material List (Excel)</h3>
-                    <input type="text" id="material-column" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter column name for Material">
-                    <input type="file" id="material-file" accept=".xlsx,.xls" class="block w-full text-gray-500 mb-2">
-                    <button onclick="importExcel('material')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Import</button>
-                    <pre id="material-json" class="mt-2 p-2 bg-gray-100 rounded hidden"></pre>
-                </div>
-                <!-- Import Unit List -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-700 mb-2">Import Unit List (Excel)</h3>
-                    <input type="text" id="unit-column" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter column name for Unit">
-                    <input type="file" id="unit-file" accept=".xlsx,.xls" class="block w-full text-gray-500 mb-2">
-                    <button onclick="importExcel('unit')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Import</button>
-                    <pre id="unit-json" class="mt-2 p-2 bg-gray-100 rounded hidden"></pre>
-                </div>
-            </div>
-            <div class="mt-6 flex space-x-4">
-                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Clear Inventory</button>
-                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Clear Vendors</button>
-                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Clear Materials</button>
-                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Clear Units</button>
-            </div>
-        </section>
-
-        <!-- Toast Notification -->
-        <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hidden fade-in">
+        <!-- Notification -->
+        <div class="alert alert-success notification" id="notification">
             Item added successfully.
         </div>
     </div>
 
+    <!-- Audio for beeps -->
+    <audio id="beep-supplier" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+    <audio id="beep-item" src="https://www.soundjay.com/buttons/beep-02.mp3"></audio>
+    <audio id="beep-quantity" src="https://www.soundjay.com/buttons/beep-03.mp3"></audio>
+    <audio id="beep-invalid" src="https://www.soundjay.com/buttons/beep-05.mp3"></audio>
+    <audio id="beep-added" src="https://www.soundjay.com/buttons/beep-07.mp3"></audio>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        // Set current date as default value for the date input
-        document.addEventListener('DOMContentLoaded', () => {
-            const dateInput = document.getElementById('date');
-            const today = new Date();
-            const formattedDate = today.toISOString().split('T')[0];
-            dateInput.value = formattedDate;
-        });
+        // Speech Synthesis
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.5;
+            window.speechSynthesis.speak(utterance);
+            console.log('Speaking:', text);
+        }
 
-        // Toggle export dropdown
-        document.querySelectorAll('.relative button').forEach(button => {
-            button.addEventListener('click', () => {
-                const dropdown = button.nextElementSibling;
-                dropdown.classList.toggle('hidden');
+        // Play beep sounds
+        function playBeep(type) {
+            const audio = document.getElementById(`beep-${type}`);
+            audio.play().catch(err => console.error('Audio play failed:', err));
+        }
+
+        // Speech Recognition
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-IN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        let sessionType = null;
+        let vendor = null;
+        let material = null;
+        let step = 'vendor';
+
+        async function startListening(type) {
+            sessionType = type;
+            step = 'vendor';
+            speak('System ready');
+            playBeep('supplier');
+            const response = await fetch('/session_status');
+            const status = await response.json();
+            if (status.active) {
+                speak('Session already active. Stopping previous session.');
+                await fetch('/stop_listening', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session: sessionType })
+                });
+            }
+            await fetch('/start_listening', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session: sessionType })
             });
-        });
+            recognition.start();
+        }
 
-        // Show toast notification (simulated)
-        setTimeout(() => {
-            document.getElementById('toast').classList.remove('hidden');
-            setTimeout(() => {
-                document.getElementById('toast').classList.add('hidden');
-            }, 3000);
-        }, 1000);
+        recognition.onresult = async (event) => {
+            const text = event.results[0][0].transcript.toLowerCase();
+            console.log('Recognized:', text);
 
-        // Excel import and JSON conversion
-        function importExcel(type) {
-            const fileInput = document.getElementById(`${type}-file`);
-            const columnInput = document.getElementById(`${type}-column`);
-            const jsonOutput = document.getElementById(`${type}-json`);
-            const columnName = columnInput.value.trim();
-
-            if (!fileInput.files.length) {
-                alert('Please select an Excel file.');
-                return;
-            }
-            if (!columnName) {
-                alert('Please enter a column name.');
+            if (['stop', 'exit', 'done', 'close'].includes(text)) {
+                recognition.stop();
+                speak('Session completed');
+                await fetch('/stop_listening', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session: sessionType })
+                });
+                step = 'done';
                 return;
             }
 
-            const file = fileInput.files[0];
-            const reader = new FileReader();
+            if (step === 'vendor') {
+                const response = await fetch('/match_vendor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ vendor: text })
+                });
+                const result = await response.json();
+                if (result.vendor) {
+                    vendor = result.vendor;
+                    step = 'material';
+                    playBeep('item');
+                    speak(`Vendor ${vendor} recognized. Say material.`);
+                } else {
+                    playBeep('invalid');
+                    speak('Vendor not recognized. Try again.');
+                }
+            } else if (step === 'material') {
+                const response = await fetch('/match_material', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ material: text })
+                });
+                const result = await response.json();
+                if (result.material) {
+                    material = result.material;
+                    step = 'quantity';
+                    playBeep('quantity');
+                    speak(`Material ${material} recognized. Say quantity and unit.`);
+                } else {
+                    playBeep('invalid');
+                    speak('Material not recognized. Try again.');
+                }
+            } else if (step === 'quantity') {
+                  const response = await fetch('/process_quantity', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ text, vendor, material, session: sessionType })
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                      playBeep('added');
+                      speak('Item added successfully.');
+                      showNotification('Item added successfully.');
+                      step = 'material';
+                      playBeep('item');
+                      speak('Say next material.');
+                      loadInventory();
+                  } else {
+                      playBeep('invalid');
+                      speak(result.error || 'Quantity not recognized. Try again.');
+                      console.error('Quantity error:', result.error, 'Input:', text); // Debug log
+                  }
+              }
+          
+            if (step !== 'done') recognition.start();
+        };
 
-            reader.onload = function (e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheet = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheet];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        recognition.onerror = (event) => {
+            console.error('Recognition error:', event.error);
+            playBeep('invalid');
+            speak('Error in recognition. Try again.');
+            if (step !== 'done') recognition.start();
+        };
 
-                // Map the selected column to the desired key (vendor, material, unit)
-                const key = type === 'vendor' ? 'Vendor' : type === 'material' ? 'Material' : 'Unit';
-                const result = jsonData
-                    .filter(row => row[columnName] !== undefined && row[columnName] !== null)
-                    .map(row => ({ [key]: row[columnName] }));
+        recognition.onend = () => {
+            if (step !== 'done') recognition.start();
+        };
 
-                // Display JSON output
-                jsonOutput.textContent = JSON.stringify(result, null, 2);
-                jsonOutput.classList.remove('hidden');
-            };
+        // Load and display JSON data
+        async function loadData() {
+            const vendorsResponse = await fetch('/get_vendors');
+            const vendorsData = await vendorsResponse.json();
+            document.getElementById('vendors-list').innerText = JSON.stringify(vendorsData.vendors, null, 2);
 
-            reader.readAsArrayBuffer(file);
+            const materialsResponse = await fetch('/get_materials');
+            const materialsData = await materialsResponse.json();
+            document.getElementById('materials-list').innerText = JSON.stringify(materialsData.materials, null, 2);
+
+            const unitsResponse = await fetch('/data');
+            const unitsData = await unitsResponse.json();
+            document.getElementById('units-list').innerText = JSON.stringify(unitsData.units, null, 2);
+        }
+        loadData();
+
+        // Load inventory table
+        async function loadInventory() {
+            const response = await fetch('/download/inventory.json');
+            const data = await response.json();
+            const tbody = document.getElementById('inventoryTable');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No inventory items yet. Use voice commands to add items.</td></tr>';
+                return;
+            }
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.Date}</td>
+                    <td>${item.Vendor}</td>
+                    <td>${item.Item}</td>
+                    <td>${item.Quantity} ${item.Unit}</td>
+                    <td>${item.Session}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick='removeEntry(${JSON.stringify(item)})'>Delete</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Add vendor
+        async function addVendor() {
+            const vendor = document.getElementById('vendorInput').value;
+            if (!vendor) return alert('Vendor name is required!');
+            const response = await fetch('/add_vendor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vendor })
+            });
+            const result = await response.json();
+            alert(result.message);
+            loadData();
+        }
+
+        // Add material
+        async function addMaterial() {
+            const material = document.getElementById('materialInput').value;
+            const unit = document.getElementById('unitInput').value;
+            if (!material) return alert('Material name is required!');
+            const response = await fetch('/add_material', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ material, unit })
+            });
+            const result = await response.json();
+            alert(result.message);
+            loadData();
+        }
+
+        // Import Excel
+        async function importExcel(outputFile, column) {
+            const input = document.getElementById(outputFile.includes('vendors') ? 'vendorExcel' : outputFile.includes('materials') ? 'materialExcel' : 'unitExcel');
+            if (!input.files[0]) return alert('Please select an Excel file!');
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+            formData.append('output_file', outputFile);
+            formData.append('columns', column);
+            const response = await fetch('/import_excel', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            alert(result.message || result.error);
+            loadData();
+        }
+
+        // Save inventory
+        async function saveInventory() {
+            const response = await fetch('/download/inventory.json');
+            const items = await response.json();
+            if (items.length === 0) return alert('No items to save!');
+            const saveResponse = await fetch('/save_inventory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items })
+            });
+            const result = await saveResponse.json();
+            alert(result.message || result.error);
+        }
+
+        // Export file
+        async function exportFile(format) {
+            const filename = prompt('Enter filename (without extension):', 'output');
+            if (!filename) return;
+            const response = await fetch('/export_entries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename, format })
+            });
+            const result = await response.json();
+            if (result.success) {
+                window.location.href = `/download/${filename}.${format}`;
+            } else {
+                alert('Export failed!');
+            }
+        }
+
+        // Clear JSON
+        async function clearJson(filename) {
+            if (!confirm(`Are you sure you want to clear ${filename}?`)) return;
+            const response = await fetch('/clear_entries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename })
+            });
+            const result = await response.json();
+            alert(result.message);
+            loadData();
+        }
+
+        // Remove entry
+        async function removeEntry(entry) {
+            const response = await fetch('/remove_entry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entry })
+            });
+            const result = await response.json();
+            alert(result.message);
+            loadInventory();
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.innerText = message;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
         }
     </script>
 </body>
