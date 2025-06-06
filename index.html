@@ -4,319 +4,246 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Inventory Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .tab { display: none; }
-        .tab.active { display: block; }
-        .notification { display: none; color: green; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        button { margin: 5px; padding: 8px 16px; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Voice Inventory Manager</h1>
-        <div class="tabs">
-            <button onclick="openTab('voice-tab')">Voice Input</button>
-            <button onclick="openTab('manual-tab')">Manual Input</button>
-            <button onclick="openTab('inventory-tab')">Inventory</button>
-            <button onclick="openTab('settings-tab')">Settings</button>
-        </div>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-6 max-w-7xl">
+        <!-- Header -->
+        <header class="bg-white shadow rounded-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Voice Inventory Manager</h1>
+        </header>
 
-        <!-- Voice Input Tab -->
-        <div id="voice-tab" class="tab">
-            <h3>Add Inward/Outward Inventories</h3>
-            <button onclick="startListening('inward')">Inward</button>
-            <button onclick="startListening('outward')">Outward</button>
-        </div>
+        <!-- Navigation -->
+        <nav class="bg-white shadow rounded-lg mb-6">
+            <ul class="flex space-x-4 p-4">
+                <li><a href="#voice-input" class="text-blue-600 hover:text-blue-800 font-medium">Voice Input</a></li>
+                <li><a href="#manual-input" class="text-blue-600 hover:text-blue-800 font-medium">Manual Input</a></li>
+                <li><a href="#inventory" class="text-blue-600 hover:text-blue-800 font-medium">Inventory</a></li>
+                <li><a href="#settings" class="text-blue-600 hover:text-blue-800 font-medium">Settings</a></li>
+            </ul>
+        </nav>
 
-        <!-- Manual Input Tab -->
-        <div id="manual-tab" class="tab">
-            <h3>Manual Inventory Entry</h3>
-            <form id="manual-inventory-form">
-                <label>Date: <input type="datetime-local" id="date" required></label><br>
-                <label>Vendor: <input type="text" id="vendor" required></label><br>
-                <label>Item: <input type="text" id="item" required></label><br>
-                <label>Quantity: <input type="number" id="quantity" required></label><br>
-                <label>Unit: <input type="text" id="unit" required></label><br>
-                <label>Session: 
-                    <select id="session" required>
-                        <option value="inward">Inward</option>
-                        <option value="outward">Outward</option>
-                    </select>
-                </label><br>
-                <button type="submit">Add Entry</button>
+        <!-- Inward/Outward Section -->
+        <section id="inward-outward" class="bg-white shadow rounded-lg p-6 mb-6 fade-in">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Add Inward/Outward Inventories</h2>
+            <div class="flex space-x-4">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Inward</button>
+                <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Outward</button>
+            </div>
+        </section>
+
+        <!-- Manual Inventory Entry -->
+        <section id="manual-input" class="bg-white shadow rounded-lg p-6 mb-6 fade-in">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Manual Inventory Entry</h2>
+            <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
+                    <input type="date" id="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" value="">
+                </div>
+                <div>
+                    <label for="vendor" class="block text-sm font-medium text-gray-700">Vendor</label>
+                    <input type="text" id="vendor" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Enter vendor name">
+                </div>
+                <div>
+                    <label for="item" class="block text-sm font-medium text-gray-700">Item</label>
+                    <input type="text" id="item" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Enter item name">
+                </div>
+                <div>
+                    <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+                    <input type="number" id="quantity" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Enter quantity">
+                </div>
+                <div>
+                    <label for="unit" class="block text-sm font-medium text-gray-700">Unit</label>
+                    <input type="text" id="unit" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" placeholder="Enter unit">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Session</label>
+                    <div class="mt-2 flex space-x-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="session" value="inward" class="form-radio" checked>
+                            <span class="ml-2">Inward</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="session" value="outward" class="form-radio">
+                            <span class="ml-2">Outward</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Add Entry</button>
+                </div>
             </form>
-        </div>
+        </section>
 
-        <!-- Inventory Tab -->
-        <div id="inventory-tab" class="tab active">
-            <h3>Inventory Items</h3>
-            <button onclick="saveInventory()">Save</button>
-            <div class="dropdown">
-                <button>Export</button>
-                <div class="dropdown-content">
-                    <a href="#" onclick="exportInventory('csv')">CSV</a>
-                    <a href="#" onclick="exportInventory('excel')">Excel</a>
-                    <a href="#" onclick="exportInventory('pdf')">PDF</a>
+        <!-- Inventory Items -->
+        <section id="inventory" class="bg-white shadow rounded-lg p-6 mb-6 fade-in">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Inventory Items</h2>
+            <div class="flex justify-between mb-4">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Save</button>
+                <div class="relative inline-block text-left">
+                    <button class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">Export</button>
+                    <div class="absolute hidden group-hover:block bg-white shadow-lg rounded-lg mt-2">
+                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">CSV</a>
+                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Excel</a>
+                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">PDF</a>
+                    </div>
                 </div>
             </div>
-            <table id="inventory-table">
-                <tr>
-                    <th>#</th>
-                    <th>Time</th>
-                    <th>Vendor</th>
-                    <th>Item</th>
-                    <th>Quantity</th>
-                    <th>Session</th>
-                    <th>Actions</th>
-                </tr>
-                <tr><td colspan="7">No inventory items yet. Use manual or voice commands to add items.</td></tr>
-            </table>
-        </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory items yet. Use manual or voice commands to add items.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-        <!-- Settings Tab -->
-        <div id="settings-tab" class="tab">
-            <h3>Settings</h3>
-            <div>
-                <h4>Vendors</h4>
-                <input type="text" id="vendor-input" placeholder="Enter vendor name">
-                <button onclick="addVendor()">Add</button>
-                <ul id="vendor-list"></ul>
+        <!-- Settings -->
+        <section id="settings" class="bg-white shadow rounded-lg p-6 mb-6 fade-in">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Settings</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Vendors -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">Vendors</h3>
+                    <input type="text" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter vendor name">
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Add</button>
+                </div>
+                <!-- Materials -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">Materials</h3>
+                    <input type="text" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter material name">
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Add</button>
+                </div>
+                <!-- Import Vendor List -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">Import Vendor List (Excel)</h3>
+                    <input type="text" id="vendor-column" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter column name for Vendor">
+                    <input type="file" id="vendor-file" accept=".xlsx,.xls" class="block w-full text-gray-500 mb-2">
+                    <button onclick="importExcel('vendor')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Import</button>
+                    <pre id="vendor-json" class="mt-2 p-2 bg-gray-100 rounded hidden"></pre>
+                </div>
+                <!-- Import Material List -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">Import Material List (Excel)</h3>
+                    <input type="text" id="material-column" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter column name for Material">
+                    <input type="file" id="material-file" accept=".xlsx,.xls" class="block w-full text-gray-500 mb-2">
+                    <button onclick="importExcel('material')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Import</button>
+                    <pre id="material-json" class="mt-2 p-2 bg-gray-100 rounded hidden"></pre>
+                </div>
+                <!-- Import Unit List -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">Import Unit List (Excel)</h3>
+                    <input type="text" id="unit-column" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-2" placeholder="Enter column name for Unit">
+                    <input type="file" id="unit-file" accept=".xlsx,.xls" class="block w-full text-gray-500 mb-2">
+                    <button onclick="importExcel('unit')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Import</button>
+                    <pre id="unit-json" class="mt-2 p-2 bg-gray-100 rounded hidden"></pre>
+                </div>
             </div>
-            <div>
-                <h4>Materials</h4>
-                <input type="text" id="material-input" placeholder="Enter material name">
-                <input type="text" id="unit-input" placeholder="Enter unit">
-                <button onclick="addMaterial()">Add</button>
-                <ul id="material-list"></ul>
+            <div class="mt-6 flex space-x-4">
+                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Clear Inventory</button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Clear Vendors</button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Clear Materials</button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Clear Units</button>
             </div>
-            <div>
-                <h4>Import Vendor List (Excel)</h4>
-                <input type="file" id="vendor-excel" accept=".xlsx">
-                <button onclick="importExcel('vendors.json')">Import</button>
-            </div>
-            <div>
-                <h4>Import Material List (Excel)</h4>
-                <input type="file" id="material-excel" accept=".xlsx">
-                <button onclick="importExcel('materials.json')">Import</button>
-            </div>
-            <div>
-                <h4>Import Unit List (Excel)</h4>
-                <input type="file" id="unit-excel" accept=".xlsx">
-                <button onclick="importExcel('units.json')">Import</button>
-            </div>
-            <div>
-                <button onclick="clearJson('inventory.json')">Clear Inventory</button>
-                <button onclick="clearJson('vendors.json')">Clear Vendors</button>
-                <button onclick="clearJson('materials.json')">Clear Materials</button>
-                <button onclick="clearJson('units.json')">Clear Units</button>
-            </div>
-        </div>
+        </section>
 
-        <!-- Notification -->
-        <div id="notification" class="notification">Item added successfully.</div>
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hidden fade-in">
+            Item added successfully.
+        </div>
     </div>
 
     <script>
-        let inventoryItems = [];
-
-        function openTab(tabId) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-        }
-
-        function startListening(session) {
-            fetch('/start_listening', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session })
-            })
-            .then(response => response.json())
-            .then(data => {
-                showNotification(data.message);
-                checkSessionStatus();
-            });
-        }
-
-        function checkSessionStatus() {
-            fetch('/session_status')
-            .then(response => response.json())
-            .then(data => {
-                if (data.active && data.entry.length > 0) {
-                    inventoryItems = data.entry.map((item, index) => ({
-                        id: index + 1,
-                        date: item[0],
-                        vendor: item[1],
-                        item: item[2],
-                        quantity: item[3],
-                        unit: item[4],
-                        session: item[5]
-                    }));
-                    updateInventoryTable();
-                }
-            });
-        }
-
-        function saveInventory() {
-            fetch('/save_inventory', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items: inventoryItems })
-            })
-            .then(response => response.json())
-            .then(data => showNotification(data.message));
-        }
-
-       function exportInventory(format) {
-            fetch('/export_entries', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename: 'inventory', format })
-            })
-            .then(response => response.json())
-            .then(data => {
-                showNotification(data.message);
-                window.location.href = `/download/inventory.${format}`;
-            });
-        }
-
-        function addVendor() {
-            const vendor = document.getElementById('vendor-input').value;
-            if (vendor) {
-                fetch('/add_vendor', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ vendor })
-                })
-                .then(response => response.json())
-                .then(data => showNotification(data.message));
-            }
-        }
-
-        function addMaterial() {
-            const material = document.getElementById('material-input').value;
-            const unit = document.getElementById('unit-input').value;
-            if (material) {
-                fetch('/add_material', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ material, unit })
-                })
-                .then(response => response.json())
-                .then(data => showNotification(data.message));
-            }
-        }
-
-        function importExcel(outputFile) {
-            const input = outputFile.includes('vendors') ? document.getElementById('vendor-excel') :
-                          outputFile.includes('materials') ? document.getElementById('material-excel') :
-                          document.getElementById('unit-excel');
-            const file = input.files[0];
-            if (file) {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('output_file', outputFile);
-                formData.append('columns', outputFile.includes('vendors') ? 'vendor' : outputFile.includes('materials') ? 'material' : 'unit');
-                fetch('/import_excel', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => showNotification(data.message));
-            }
-        }
-
-        function clearJson(filename) {
-            fetch('/clear_entries', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename })
-            })
-            .then(response => response.json())
-            .then(data => showNotification(data.message));
-        }
-
-        function updateInventoryTable() {
-            const table = document.getElementById('inventory-table');
-            table.innerHTML = `
-                <tr>
-                    <th>#</th>
-                    <th>Time</th>
-                    <th>Vendor</th>
-                    <th>Item</th>
-                    <th>Quantity</th>
-                    <th>Session</th>
-                    <th>Actions</th>
-                </tr>
-            `;
-            if (inventoryItems.length === 0) {
-                table.innerHTML += '<tr><td colspan="7">No inventory items yet. Use manual or voice commands to add items.</td></tr>';
-            } else {
-                inventoryItems.forEach(item => {
-                    table.innerHTML += `
-                        <tr>
-                            <td>${item.id}</td>
-                            <td>${item.date}</td>
-                            <td>${item.vendor}</td>
-                            <td>${item.item}</td>
-                            <td>${item.quantity}</td>
-                            <td>${item.session}</td>
-                            <td><button onclick="removeEntry(${item.id})">Delete</button></td>
-                        </tr>
-                    `;
-                });
-            }
-        }
-
-        function removeEntry(id) {
-            const item = inventoryItems.find(item => item.id === id);
-            fetch('/remove_entry', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ entry: [item.date, item.vendor, item.item, item.quantity, item.unit, item.session] })
-            })
-            .then(response => response.json())
-            .then(data => {
-                inventoryItems = inventoryItems.filter(item => item.id !== id);
-                updateInventoryTable();
-                showNotification(data.message);
-            });
-        }
-
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.display = 'block';
-            setTimeout(() => notification.style.display = 'none', 3000);
-        }
-
-        document.getElementById('manual-inventory-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const date = document.getElementById('date').value.replace('T', ' ');
-            const vendor = document.getElementById('vendor').value;
-            const item = document.getElementById('item').value;
-            const quantity = document.getElementById('quantity').value;
-            const unit = document.getElementById('unit').value;
-            const session = document.getElementById('session').value;
-            const newItem = {
-                id: inventoryItems.length + 1,
-                date,
-                vendor,
-                item,
-                quantity,
-                unit,
-                session
-            };
-            inventoryItems.push(newItem);
-            updateInventoryTable();
-            showNotification('Item added to table. Click Save to store.');
-            this.reset();
+        // Set current date as default value for the date input
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('date');
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            dateInput.value = formattedDate;
         });
 
-        // Initialize
-        openTab('inventory-tab');
+        // Toggle export dropdown
+        document.querySelectorAll('.relative button').forEach(button => {
+            button.addEventListener('click', () => {
+                const dropdown = button.nextElementSibling;
+                dropdown.classList.toggle('hidden');
+            });
+        });
+
+        // Show toast notification (simulated)
+        setTimeout(() => {
+            document.getElementById('toast').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('toast').classList.add('hidden');
+            }, 3000);
+        }, 1000);
+
+        // Excel import and JSON conversion
+        function importExcel(type) {
+            const fileInput = document.getElementById(`${type}-file`);
+            const columnInput = document.getElementById(`${type}-column`);
+            const jsonOutput = document.getElementById(`${type}-json`);
+            const columnName = columnInput.value.trim();
+
+            if (!fileInput.files.length) {
+                alert('Please select an Excel file.');
+                return;
+            }
+            if (!columnName) {
+                alert('Please enter a column name.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheet];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                // Map the selected column to the desired key (vendor, material, unit)
+                const key = type === 'vendor' ? 'Vendor' : type === 'material' ? 'Material' : 'Unit';
+                const result = jsonData
+                    .filter(row => row[columnName] !== undefined && row[columnName] !== null)
+                    .map(row => ({ [key]: row[columnName] }));
+
+                // Display JSON output
+                jsonOutput.textContent = JSON.stringify(result, null, 2);
+                jsonOutput.classList.remove('hidden');
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
     </script>
 </body>
 </html>
